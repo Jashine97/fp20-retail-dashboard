@@ -1,1 +1,572 @@
-<html><body><h1>Dashboard Placeholder</h1></body></html>
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      :root {
+        --bg-main: #0b1014;
+        --bg-panel: #111111;
+        --bg-sidebar: #b83224;
+        --bg-sidebar-dark: #1a1a1a;
+        --accent: #f97316;
+        --accent-soft: #fb923c;
+        --text-main: #ffffff;
+        --text-muted: #9ca3af;
+        --danger: #ef4444;
+        --success: #22c55e;
+        --border-soft: #20252b;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Roboto, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        background: #0b1014;
+        color: var(--text-main);
+      }
+
+      .page {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        height: 100vh;
+      }
+
+      .sidebar {
+        background: linear-gradient(to bottom, #b83224 0, #1a1a1a 120px);
+        color: #fff;
+        padding: 16px 12px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .sidebar-title {
+        background: #b83224;
+        padding: 12px 10px;
+        margin-bottom: 16px;
+      }
+
+      .sidebar-title h1 {
+        font-size: 14px;
+        margin: 0 0 4px;
+        font-weight: 600;
+      }
+
+      .sidebar-title h2 {
+        font-size: 16px;
+        margin: 0 0 4px;
+        font-weight: 700;
+      }
+
+      .sidebar-title h3 {
+        font-size: 11px;
+        margin: 0;
+        font-weight: 500;
+      }
+
+      .sidebar-btn {
+        border-radius: 4px;
+        padding: 8px 10px;
+        text-align: center;
+        font-size: 11px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        cursor: pointer;
+      }
+      .sidebar-btn.primary {
+        background: var(--accent);
+      }
+      .sidebar-btn.secondary {
+        background: #7a2414;
+      }
+
+      .sidebar-section-label {
+        margin-top: 10px;
+        padding: 4px 8px;
+        font-size: 10px;
+        font-weight: 600;
+        background: #b83224;
+      }
+
+      .sidebar-select {
+        width: 100%;
+        margin-top: 2px;
+        background: #222;
+        border: 1px solid #444;
+        color: #fff;
+        font-size: 11px;
+        padding: 4px 6px;
+      }
+
+      .content {
+        background: radial-gradient(circle at top left, #334155 0, #020617 50%);
+        padding: 10px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .kpi-row {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .kpi-card {
+        background: var(--bg-panel);
+        border: 1px solid #020617;
+        display: grid;
+        grid-template-rows: auto auto auto;
+      }
+
+      .kpi-header {
+        background: #222;
+        padding: 4px 6px;
+        font-size: 10px;
+        font-weight: 600;
+        text-align: center;
+      }
+
+      .kpi-value {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: 700;
+      }
+
+      .kpi-sub {
+        padding: 2px 6px 4px;
+        font-size: 9px;
+        text-align: center;
+        color: var(--success);
+      }
+
+      .row {
+        display: grid;
+        gap: 8px;
+      }
+
+      .row-2 {
+        grid-template-columns: 2fr 1.2fr;
+      }
+      .row-3 {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .panel {
+        background: var(--bg-panel);
+        border: 1px solid var(--border-soft);
+        padding: 6px 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .panel-title {
+        font-size: 10px;
+        font-weight: 600;
+      }
+
+      canvas {
+        width: 100% !important;
+        height: 220px !important;
+      }
+
+      .panel-small canvas {
+        height: 160px !important;
+      }
+      .panel-tall canvas {
+        height: 260px !important;
+      }
+
+      .bottom-row {
+        display: grid;
+        grid-template-columns: 1.7fr 1.3fr;
+        gap: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <!-- SIDEBAR -------------------------------------------------------- -->
+      <aside class="sidebar">
+        <div class="sidebar-title">
+          <h1>FP20 Analytics</h1>
+          <h2>North America</h2>
+          <h3>Retail Supply Chain | Sales Analysis</h3>
+        </div>
+
+        <div class="sidebar-btn primary">Overview</div>
+        <div class="sidebar-btn secondary">Supply Chain</div>
+
+        <div class="sidebar-section-label">Year</div>
+        <select id="filter-year" class="sidebar-select"></select>
+
+        <div class="sidebar-section-label">Region</div>
+        <select id="filter-region" class="sidebar-select"></select>
+
+        <div class="sidebar-section-label">Segment</div>
+        <select id="filter-segment" class="sidebar-select"></select>
+
+        <div class="sidebar-section-label">Category</div>
+        <select id="filter-category" class="sidebar-select"></select>
+
+        <div class="sidebar-section-label">Ship Mode</div>
+        <select id="filter-ship" class="sidebar-select"></select>
+
+        <div class="sidebar-section-label">Sales People</div>
+        <select id="filter-sales" class="sidebar-select"></select>
+      </aside>
+
+      <!-- MAIN CONTENT --------------------------------------------------- -->
+      <main class="content">
+        <!-- KPIs -->
+        <section class="kpi-row">
+          <div class="kpi-card" id="kpi-revenue">
+            <div class="kpi-header">Revenue</div>
+            <div class="kpi-value" id="kpi-revenue-value">$0.0M</div>
+            <div class="kpi-sub" id="kpi-revenue-sub">+ vs LY</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-header">Cost</div>
+            <div class="kpi-value" id="kpi-cost-value">$0.0M</div>
+            <div class="kpi-sub" id="kpi-cost-sub">- vs LY</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-header">Profit</div>
+            <div class="kpi-value" id="kpi-profit-value">$0.0M</div>
+            <div class="kpi-sub" id="kpi-profit-sub">+ vs LY</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-header">Order</div>
+            <div class="kpi-value" id="kpi-orders-value">0</div>
+            <div class="kpi-sub">Orders</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-header">Quantity Sold</div>
+            <div class="kpi-value" id="kpi-qty-value">0</div>
+            <div class="kpi-sub">Units</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-header">Delivery Rate</div>
+            <div class="kpi-value" id="kpi-deliveryRate-value">0%</div>
+            <div class="kpi-sub" id="kpi-deliveryRate-sub">Return Rate</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-header">Avg. Delivery</div>
+            <div class="kpi-value" id="kpi-avgDel-value">0 Days</div>
+            <div class="kpi-sub" style="color: var(--danger);">Max Delivery Days</div>
+          </div>
+        </section>
+
+        <!-- Row: trend + subcategory -->
+        <section class="row row-2">
+          <div class="panel panel-tall">
+            <div class="panel-title">Revenue vs LY trend over the period</div>
+            <canvas id="chart-months"></canvas>
+          </div>
+          <div class="panel panel-tall">
+            <div class="panel-title">Revenue by Subcategory</div>
+            <canvas id="chart-subcats"></canvas>
+          </div>
+        </section>
+
+        <!-- Row: region/segment/category + ship mode -->
+        <section class="row">
+          <div class="row row-3">
+            <div class="panel panel-small">
+              <div class="panel-title">Revenue by Region</div>
+              <canvas id="chart-regions"></canvas>
+            </div>
+            <div class="panel panel-small">
+              <div class="panel-title">Revenue by Segment</div>
+              <canvas id="chart-segments"></canvas>
+            </div>
+            <div class="panel panel-small">
+              <div class="panel-title">Revenue by Category</div>
+              <canvas id="chart-categories"></canvas>
+            </div>
+          </div>
+          <div class="panel panel-small">
+            <div class="panel-title">Ship Mode Details</div>
+            <canvas id="chart-ship"></canvas>
+          </div>
+        </section>
+
+        <!-- Bottom row: customers + states -->
+        <section class="bottom-row">
+          <div class="panel">
+            <div class="panel-title">Customer Details [Top 15]</div>
+            <canvas id="chart-customers"></canvas>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Revenue | State [Top 10]</div>
+            <canvas id="chart-states"></canvas>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      // Hold Chart.js instances so we can update them
+      const charts = {};
+
+      function formatMillions(value) {
+        return '$' + (value / 1_000_000).toFixed(2) + 'M';
+      }
+
+      function formatInt(value) {
+        return value.toLocaleString();
+      }
+
+      function loadDashboard(initial) {
+        const filters = initial ? {} : {
+          year:        document.getElementById('filter-year').value,
+          region:      document.getElementById('filter-region').value,
+          segment:     document.getElementById('filter-segment').value,
+          category:    document.getElementById('filter-category').value,
+          shipMode:    document.getElementById('filter-ship').value,
+          salesPerson: document.getElementById('filter-sales').value
+        };
+
+        google.script.run
+          .withSuccessHandler(renderDashboard)
+          .getDashboardData(filters);
+      }
+
+      function renderDashboard(payload) {
+        const k = payload.kpis;
+        const s = payload.series;
+        const opts = payload.filterOptions;
+
+        // Fill dropdowns on first load
+        if (!document.getElementById('filter-year').options.length) {
+          fillSelect('filter-year',   ['All'].concat(opts.years));
+          fillSelect('filter-region', opts.regions);
+          fillSelect('filter-segment',opts.segments);
+          fillSelect('filter-category',opts.categories);
+          fillSelect('filter-ship',opts.shipModes);
+          fillSelect('filter-sales',opts.salesPeople);
+
+          // attach change events once
+          ['filter-year','filter-region','filter-segment',
+           'filter-category','filter-ship','filter-sales']
+            .forEach(id => document.getElementById(id)
+              .addEventListener('change', () => loadDashboard(false)));
+        }
+
+        // Set selected values to match applied filters
+        setSelectValue('filter-year',   payload.appliedFilters.year);
+        setSelectValue('filter-region', payload.appliedFilters.region);
+        setSelectValue('filter-segment',payload.appliedFilters.segment);
+        setSelectValue('filter-category',payload.appliedFilters.category);
+        setSelectValue('filter-ship',   payload.appliedFilters.shipMode);
+        setSelectValue('filter-sales',  payload.appliedFilters.salesPerson);
+
+        // KPIs ------------------------------------------------------------
+        document.getElementById('kpi-revenue-value').textContent = formatMillions(k.revenue);
+        document.getElementById('kpi-cost-value').textContent    = formatMillions(k.cost);
+        document.getElementById('kpi-profit-value').textContent  = formatMillions(k.profit);
+        document.getElementById('kpi-orders-value').textContent  = formatInt(k.orders);
+        document.getElementById('kpi-qty-value').textContent     = formatInt(k.quantity);
+        document.getElementById('kpi-deliveryRate-value').textContent =
+          (k.deliveryRate * 100).toFixed(1) + '%';
+        document.getElementById('kpi-avgDel-value').textContent  =
+          k.avgDeliveryDays.toFixed(1) + ' Days';
+
+        // Charts ----------------------------------------------------------
+        buildOrUpdateChart('chart-months',
+          {
+            type: 'bar',
+            data: {
+              labels: s.months.map(m => m.month),
+              datasets: [
+                {
+                  label: 'Revenue (Current)',
+                  data: s.months.map(m => m.current),
+                  backgroundColor: '#f97316'
+                },
+                {
+                  label: 'Revenue (LY)',
+                  data: s.months.map(m => m.last),
+                  backgroundColor: '#fb923c'
+                }
+              ]
+            }
+          });
+
+        buildOrUpdateChart('chart-subcats',
+          {
+            type: 'bar',
+            data: {
+              labels: s.subcategories.map(x => x.subcategory),
+              datasets: [{
+                label: 'Revenue',
+                data: s.subcategories.map(x => x.value),
+                backgroundColor: '#f97316'
+              }]
+            },
+            options: { indexAxis: 'y' }
+          });
+
+        buildOrUpdateChart('chart-regions',
+          {
+            type: 'bar',
+            data: {
+              labels: s.regions.map(x => x.name),
+              datasets: [{
+                label: 'Revenue',
+                data: s.regions.map(x => x.value),
+                backgroundColor: '#f97316'
+              }]
+            },
+            options: { indexAxis: 'y' }
+          });
+
+        buildOrUpdateChart('chart-segments',
+          {
+            type: 'bar',
+            data: {
+              labels: s.segments.map(x => x.name),
+              datasets: [{
+                label: 'Revenue',
+                data: s.segments.map(x => x.value),
+                backgroundColor: '#f97316'
+              }]
+            },
+            options: { indexAxis: 'y' }
+          });
+
+        buildOrUpdateChart('chart-categories',
+          {
+            type: 'bar',
+            data: {
+              labels: s.categories.map(x => x.name),
+              datasets: [{
+                label: 'Revenue',
+                data: s.categories.map(x => x.value),
+                backgroundColor: '#f97316'
+              }]
+            },
+            options: { indexAxis: 'y' }
+          });
+
+        buildOrUpdateChart('chart-ship',
+          {
+            type: 'bar',
+            data: {
+              labels: s.shipModes.map(x => x.shipMode),
+              datasets: [
+                {
+                  label: 'Revenue',
+                  data: s.shipModes.map(x => x.revenue),
+                  backgroundColor: '#f97316',
+                  yAxisID: 'y'
+                },
+                {
+                  label: 'Avg Delivery Days',
+                  data: s.shipModes.map(x => x.avgDeliveryDays),
+                  type: 'line',
+                  borderColor: '#22c55e',
+                  backgroundColor: '#22c55e',
+                  yAxisID: 'y1'
+                }
+              ]
+            },
+            options: {
+              scales: {
+                y: { position: 'left', ticks: { color: '#e5e7eb' } },
+                y1:{ position: 'right', grid: { drawOnChartArea: false }, ticks:{ color:'#6ee7b7' } }
+              }
+            }
+          });
+
+        buildOrUpdateChart('chart-customers',
+          {
+            type: 'bar',
+            data: {
+              labels: s.customers.map(x => x.customer),
+              datasets: [{
+                label: 'Revenue',
+                data: s.customers.map(x => x.value),
+                backgroundColor: '#f97316'
+              }]
+            },
+            options: { indexAxis: 'y' }
+          });
+
+        buildOrUpdateChart('chart-states',
+          {
+            type: 'bar',
+            data: {
+              labels: s.states.map(x => x.state),
+              datasets: [{
+                label: 'Revenue',
+                data: s.states.map(x => x.value),
+                backgroundColor: '#f97316'
+              }]
+            },
+            options: { indexAxis: 'y' }
+          });
+      }
+
+      function buildOrUpdateChart(id, config) {
+        const ctx = document.getElementById(id).getContext('2d');
+        const baseOptions = {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: { color: '#e5e7eb', font: { size: 9 } }
+            }
+          },
+          scales: {
+            x: { ticks: { color: '#e5e7eb', font: { size: 9 } }, grid: { color: '#1f2937' } },
+            y: { ticks: { color: '#e5e7eb', font: { size: 9 } }, grid: { color: '#111827' } }
+          }
+        };
+
+        // Merge default options
+        config.options = Object.assign({}, baseOptions, config.options || {});
+
+        if (charts[id]) {
+          charts[id].data = config.data;
+          charts[id].options = config.options;
+          charts[id].update();
+        } else {
+          charts[id] = new Chart(ctx, config);
+        }
+      }
+
+      function fillSelect(id, values) {
+        const sel = document.getElementById(id);
+        values.forEach(v => {
+          const opt = document.createElement('option');
+          opt.value = v;
+          opt.textContent = v;
+          sel.appendChild(opt);
+        });
+      }
+
+      function setSelectValue(id, value) {
+        if (!value) return;
+        const sel = document.getElementById(id);
+        for (let i = 0; i < sel.options.length; i++) {
+          if (String(sel.options[i].value) === String(value)) {
+            sel.selectedIndex = i;
+            return;
+          }
+        }
+      }
+
+      // First load
+      window.addEventListener('load', function() {
+        loadDashboard(true);
+      });
+    </script>
+  </body>
+</html>
